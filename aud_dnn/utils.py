@@ -340,10 +340,14 @@ def ridgeRegressSplits(source_features,
     Base function from Jenelle Feather.
     """
     ## Define regression ##
-    ridgeCrossVal = RidgeCV(alphas=possible_alphas, normalize=ridge_normalize,
-                                                     fit_intercept=ridge_fit_intercept,
-                                                     store_cv_values=store_cv)
-    
+    #ridgeCrossVal = RidgeCV(alphas=possible_alphas, normalize=ridge_normalize,
+    #                                                 fit_intercept=ridge_fit_intercept,
+    #                                                 store_cv_values=store_cv)
+
+    #Normalize is set to false and new sklearn versions don't support that arg:
+    ridgeCrossVal = RidgeCV(alphas=possible_alphas,
+                            fit_intercept=ridge_fit_intercept,
+                            store_cv_values=store_cv)    
     ## Define train/test splits ##
     X_train = source_features[is_train_data, :]
     Y_train = y[is_train_data]
