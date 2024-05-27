@@ -242,7 +242,11 @@ def get_source_features(source_model,
                         'S2T',
                         'VGGish',
                         'wav2vec',
-                        'ZeroSpeech2020', ]:
+                        'ZeroSpeech2020', 
+                        'mel256-ec-base',
+                        'mel256-ec-base-as',
+                        'mel256-ec-base-ll',
+                        'mel256-ec-base-fma']:
         model = PytorchWrapper(model_identifier=source_model, CACHEDIR=CACHEDIR, randnetw=randnetw)
         source_features = model.compile_activations(ID_order=stimuli_IDs, source_layer_of_interest=source_layer_map[source_model][source_layer])
         source_features = source_features.to_numpy()
