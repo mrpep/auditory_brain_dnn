@@ -255,6 +255,9 @@ d_layer_names = {'Kell2018music': {'input_after_preproc': 'Cochleagram', 'relu0'
 # This is only used for the external models given that they are extracted using Pytorch module names.
 source_layer_map = {
     'mel256-ec-base': {str(i): i for i in range(10)},
+    'mel256-ec-base-ll': {str(i): i for i in range(10)},
+    'mel256-ec-base-fma': {str(i): i for i in range(10)},
+    'mel256-ec-base-as': {str(i): i for i in range(10)},
     'DCASE2020': {
         'GRU_1': 'GRU(64, 256, batch_first=True, bidirectional=True)--0--hidden',
         'GRU_2': 'GRU(512, 256, batch_first=True, bidirectional=True)--0--hidden',
