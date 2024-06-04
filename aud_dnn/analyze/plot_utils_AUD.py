@@ -93,7 +93,7 @@ def concat_dfs_modelwise(RESULTDIR,
         if s.startswith(source_model):
             if t == target:
                 files_model_of_interest.append(f)
-    
+
     if truncate:  # for testing
         files_model_of_interest = files_model_of_interest[:truncate]
 
@@ -107,7 +107,8 @@ def concat_dfs_modelwise(RESULTDIR,
     files_after_reindex = []
     intended_positions = {}
     for f in files_after_rand:  # find layer name, take care of dashes in the name..
-        layer = f.split('SOURCE-')[1].split('_RAND')[0].split('-')[1:]
+        layer = f.split('SOURCE-')[1].split('_RAND')[0].split('-')[-1]
+        
         if len(layer) == 1:
             layer = layer[0]
         else:
@@ -118,7 +119,7 @@ def concat_dfs_modelwise(RESULTDIR,
             # Get the index of the layer in layer_reindex, 0 for first layer, 1 for second layer etc.
             numerical_index = layer_reindex.index(layer)
             intended_positions[numerical_index] = f
-
+    print(files_after_reindex)
     print(f'Loading {df_str} results from {len(files_after_reindex)} folders')
     # Assert that intended positions and layer_reindex are the same
     assert len(intended_positions) == len(layer_reindex)
@@ -285,7 +286,7 @@ def select_r2_test_CV_splits_nit(output_folders_paths,
 
         # Load the across-CV splits data for each layer
         for f in output_folders_paths:
-            layer = f.split('SOURCE-')[1].split('_RAND')[0].split('-')[1:]
+            layer = f.split('SOURCE-')[1].split('_RAND')[0].split('-')[-1]
             if len(layer) == 1:
                 layer = layer[0]
             else:
@@ -337,6 +338,7 @@ def select_r2_test_CV_splits_nit(output_folders_paths,
         value_of_interest_post_collapse = collapse_over_splits + '_' + value_of_interest
         
         # Merge across layers and reindex
+        print(lst_layer_selection)
         df_layer_selection = pd.concat(lst_layer_selection, axis=1)[d_layer_reindex[source_model]]
         df_r_value = pd.concat(lst_r_value, axis=1)[d_layer_reindex[source_model]]
         
@@ -344,8 +346,12 @@ def select_r2_test_CV_splits_nit(output_folders_paths,
         df_best_layer, _ = layer_position_argmax(p=df_layer_selection, source_model=source_model)
         
         # Now use the best layer per voxel to obtain the r2 test value for each voxel (independently selected)
-        df_best_layer_r_values = pd.DataFrame(df_r_value.lookup(df_best_layer.index, df_best_layer.layer_pos.values),
-                                              index=df_best_layer.index, columns=[value_of_interest_post_collapse])
+        print(df_best_layer)
+        df_best_layer_r_values = pd.DataFrame(
+            df_best_layer.apply(lambda row: df_r_value.at[row.name, row['layer_pos']], axis=1),
+            index=df_best_layer.index,
+            columns=[value_of_interest_post_collapse]
+        )
         df_best_layer_r_values['pos'] = df_best_layer.pos
         df_best_layer_r_values['rel_pos'] = df_best_layer.rel_pos
         df_best_layer_r_values['layer_pos'] = df_best_layer.layer_pos
@@ -358,6 +364,8 @@ def select_r2_test_CV_splits_nit(output_folders_paths,
         # Now obtain the subj_idx from df_roi_meta (if voxel values!) and merge with the r2 test values
         if target != 'NH2015comp':
             df_best_layer_r_values['subj_idx'] = df_meta_roi.subj_idx.values
+            print(df_best_layer_r_values)
+            df_best_layer_r_values = df_best_layer_r_values.apply(pd.to_numeric, errors='coerce')
             df_best_layer_r_values_grouped = df_best_layer_r_values.copy(deep=True).groupby('subj_idx').median()  # take median across voxels
         else:
             df_best_layer_r_values['comp'] = df_meta_roi.comp.values
@@ -793,7 +801,7 @@ def plot_score_across_layers(output,
             for piv, yerr, roi_label in zip(lst_pivs, lst_yerrs, lst_roi_labels):
                 piv_save = piv.copy(deep=True) # copy the pivot table # rename columns to include roi label
                 df_yerr = pd.DataFrame([yerr], columns=piv_save.columns, index=['yerr'])  # append yerr to the pivot table that is plotted
-                piv_save = piv_save.append(df_yerr)
+                piv_save = pd.concat([piv_save,df_yerr])
 
                 piv_save.to_csv(join(save, f'across-layers_roi-{roi_label}_{source_model}_{target}_{value_of_interest}.csv'))
 
@@ -824,6 +832,7 @@ def plot_score_across_layers(output,
         plt.title(title_str, fontsize=16)
         plt.tight_layout(h_pad=1.2)
         plt.legend(frameon=False)
+        Path(SAVEDIR_CENTRALIZED).mkdir(parents=True, exist_ok=True)
         if save:
             plt.savefig(
                 join(SAVEDIR_CENTRALIZED, f'across-layers_roi-{roi}_{source_model}_{target}_{value_of_interest}.svg'), dpi=180)
@@ -831,7 +840,7 @@ def plot_score_across_layers(output,
             # save csv
             piv_save = piv.copy(deep=True)
             df_yerr = pd.DataFrame([yerr], columns=piv_save.columns, index=['yerr'])  # append yerr to the pivot table that is plotted
-            piv_save = piv_save.append(df_yerr)
+            piv_save = pd.concat([piv_save,df_yerr])
             piv_save.to_csv(join(save, f'across-layers_roi-{roi}_{source_model}_{target}_{value_of_interest}.csv'))
 
             if output_randnetw is not None:
@@ -1604,7 +1613,7 @@ def barplot_across_models(source_models,
         else:
             piv_spectemp = obtain_spectemp_val(roi=roi, target=target, value_of_interest=value_of_interest)
 
-        df_all = df_all.append(piv_spectemp)
+        df_all = pd.concat([df_all,piv_spectemp])
 
         ## Obtain mean and within-subject error bar (i.e. within-subject error bar)
         # for each cond (model), subtract the mean across cond. then, each subject will have a demeaned array
@@ -3581,7 +3590,7 @@ def barplot_best_layer_per_anat_ROI(output,
         p_plot_save = p_plot.copy()
         df_yerr = pd.DataFrame([yerr], columns=p_plot_save.columns,
                                index=['yerr'])  # append yerr to the pivot table that is plotted
-        p_plot_save = p_plot_save.append(df_yerr)
+        p_plot_save = pd.concat([p_plot_save,df_yerr])
         p_plot_save.to_csv(join(save, f'{save_str}.csv'))
 
         # Also store the df_plot

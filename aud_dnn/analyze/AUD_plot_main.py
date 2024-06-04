@@ -49,14 +49,14 @@ if not concat_over_models:
 
 if concat_over_models:
 	# Shared for neural and components
-	plot_barplot_across_models = False # Figure 2 for neural, Figure 5 for components; barplot of performance across models
-	plot_scatter_across_models = True # Figure 2, Seed1 vs Seed2 scatter for neural
+	plot_barplot_across_models = True # Figure 2 for neural, Figure 5 for components; barplot of performance across models
+	plot_scatter_across_models = False # Figure 2, Seed1 vs Seed2 scatter for neural
 	plot_scatter_across_models_clean = False # For components, seed1 vs seed2 scatter for clean models
 	plot_word_speaker_clean_models = False # Figure 8 for neural; barplot of performance for word/speaker models vs clean models (SI for components)
 
 	# Neural specific
 	plot_anat_roi_scatter = False # Figure 7 neural; scatter of performance across models for anatomical ROIs
-	stats_barplot_across_models = False # Figure 2 neural; stats for barplot of performance across models
+	stats_barplot_across_models = True # Figure 2 neural; stats for barplot of performance across models
 	determine_surf_colorscale = False # For figuring out which colorscale to use for Figure 6
 	median_surface_across_models = False # Figure 6 neural; median surface across models for each dataset
 
@@ -66,12 +66,14 @@ if concat_over_models:
 	plot_scatter_pred_vs_actual = False # Figure 4, scatter for components
 
 # Specify target
-target = 'B2021'
+target = 'NH2015'
 
 # Logging
 date = datetime.datetime.now().strftime("%m%d%Y-%T")
 if user != 'gt':
-	sys.stdout = open(join(RESULTDIR_ROOT, 'logs', f'out-{date}.log'), 'a+')
+	log_path = Path(join(RESULTDIR_ROOT, 'logs', f'out-{date}.log'))
+	log_path.parent.mkdir(parents=True, exist_ok=True)
+	sys.stdout = open(log_path, 'a+')
 
 # Specify source models
 # All models (n=19)
@@ -79,6 +81,7 @@ source_models = ['Kell2018word', 'Kell2018speaker',  'Kell2018music', 'Kell2018a
 				 'ResNet50word', 'ResNet50speaker', 'ResNet50music', 'ResNet50audioset',   'ResNet50multitask',
 				'AST',  'wav2vec', 'DCASE2020', 'DS2',  'VGGish', 'ZeroSpeech2020', 'S2T', 'metricGAN', 'sepformer'] # 'spectemp']
 
+source_models += ['mel256-ec-base','mel256-ec-base-fma','mel256-ec-base-ll']
 print(f'---------- Target: {target} ----------')
 
 if concat_over_models:  # assemble plots across models
@@ -349,7 +352,7 @@ if concat_over_models:  # assemble plots across models
 		# STATS FOR BARPLOTS ACROSS MODELS (bootstrap across subjects)
 		if stats_barplot_across_models:
 			for val_flag in ['median_r2_test_c',]:
-				for randnetw_flag in ['False','True']:
+				for randnetw_flag in ['False',]:
 					compare_models_subject_bootstrap(source_models=source_models,
 													 target=target,
 													 save=save,
@@ -533,7 +536,7 @@ if not concat_over_models:
 		output['mean_r2_test_c'] = output['mean_r2_test_c'].clip(upper=1)
 
 		# Permuted network (does not exist for spectemp or init models)
-		if source_model.endswith('init') or source_model == 'spectemp': #or source_model in source_models: # FOR NOW, LETS NOT PLOT RANDNETW
+		if source_model.endswith('init') or source_model == 'spectemp' or source_model.startswith('mel'): #or source_model in source_models: # FOR NOW, LETS NOT PLOT RANDNETW
 			output_randnetw = None
 			output_folders_paths_randnetw = []
 		else:

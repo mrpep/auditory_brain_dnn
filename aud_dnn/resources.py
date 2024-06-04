@@ -258,6 +258,9 @@ source_layer_map = {
     'mel256-ec-base-ll': {str(i): i for i in range(10)},
     'mel256-ec-base-fma': {str(i): i for i in range(10)},
     'mel256-ec-base-as': {str(i): i for i in range(10)},
+    'mel256-ec-base_st': {str(i): i for i in range(10)},
+    'mel256-ec-large': {str(i): i for i in range(20)},
+    'mel256-ec-large_st': {str(i): i for i in range(20)},
     'DCASE2020': {
         'GRU_1': 'GRU(64, 256, batch_first=True, bidirectional=True)--0--hidden',
         'GRU_2': 'GRU(512, 256, batch_first=True, bidirectional=True)--0--hidden',
@@ -400,6 +403,8 @@ source_layer_map = {
             'Encoder_12': 'Encoder_12'},
 
 }
+melmap = {'mel256-ec-base-step-{}'.format(step): {str(i): i for i in range(10)} for step in range(50000,500001,50000)}
+source_layer_map.update(melmap)
 
 ###### MORE PLOTTING/FIGURE RELATED ######
 import matplotlib
@@ -407,7 +412,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 # Plot styles
-plt.style.use('seaborn-pastel')
+#plt.style.use('seaborn-pastel')
 matplotlib.rcParams['mathtext.fontset'] = 'custom'
 matplotlib.rc('font',family='sans-serif')
 plt.rcParams.update({'font.size':12})
@@ -479,6 +484,10 @@ d_model_colors = {
     'wav2vec': 'plum',
     'ZeroSpeech2020': 'skyblue',
     'mock': 'grey',
+
+    'mel256-ec-base': '#47A8B3',
+    'mel256-ec-base-ll': '#47A9B3',
+    'mel256-ec-base-fma': '#47AAB3'
 }
 
 d_model_names = {
