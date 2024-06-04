@@ -8,8 +8,8 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..'))
 
 # Use the flags below to indicate what you want to download. The flags get_data and get_model_actv are sufficient to run your own models.
 get_data = True # ~180MB
-get_model_actv = False # Obs: large file (~2.7GB)
-get_results = False # Obs: large file (~2.1GB)
+get_model_actv = True # Obs: large file (~2.7GB)
+get_results = True # Obs: large file (~2.1GB)
 get_fsavg_surf = False # ~480MB
 
 print(f'Downloading files to {ROOT}')
